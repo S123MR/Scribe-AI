@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scribe AI - Handwritten Notes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for handwriting styles -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Indie+Flower&family=Kalam:wght@300;400;700&family=Patrick+Hand&family=Shadows+Into+Light&family=Gloria+Hallelujah&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- External Libraries for File Parsing (DOCX, HTML->MD) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://unpkg.com/turndown/dist/turndown.js"></script>
+    <script src="https://unpkg.com/turndown-plugin-gfm/dist/turndown-plugin-gfm.js"></script>
+
+    <style>
+      /* Custom scrollbar for better aesthetics */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+      /* Hide scrollbar for printing/preview capture if needed */
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      
+      /* Handwritten content styling */
+      .handwritten-content h1 {
+        font-size: 1.8em;
+        font-weight: bold;
+        border-bottom: 2px solid currentColor;
+        margin-bottom: 0.5em;
+        margin-top: 0.5em;
+        line-height: 1.2;
+        border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px; /* Sketchy line */
+      }
+      .handwritten-content h2 {
+        font-size: 1.5em;
+        font-weight: bold;
+        margin-bottom: 0.4em;
+        margin-top: 0.8em;
+        line-height: 1.2;
+      }
+      .handwritten-content h3 {
+        font-size: 1.25em;
+        font-weight: bold;
+        margin-bottom: 0.3em;
+        margin-top: 0.6em;
+        text-decoration: underline;
+        text-decoration-style: wavy;
+      }
+      
+      .handwritten-content ul {
+        list-style-type: disc;
+        padding-left: 1.5em;
+        margin-bottom: 1em;
+      }
+      .handwritten-content ol {
+        list-style-type: decimal;
+        padding-left: 1.5em;
+        margin-bottom: 1em;
+      }
+      .handwritten-content li {
+        margin-bottom: 0.2em;
+        padding-left: 0.2em;
+      }
+      
+      .handwritten-content blockquote {
+        border-left: 3px solid currentColor;
+        padding-left: 1em;
+        margin-left: 0.5em;
+        font-style: italic;
+        opacity: 0.8;
+        border-radius: 5px 2px 2px 5px;
+      }
+
+      /* Handwritten table styles generic */
+      .handwritten-content table {
+        width: 100%;
+        border-collapse: separate; /* Needed for border-radius */
+        border-spacing: 0;
+        margin-bottom: 1rem;
+        margin-top: 0.5rem;
+      }
+      .handwritten-content th, .handwritten-content td {
+        padding: 8px 12px;
+        text-align: left;
+        vertical-align: top;
+      }
+      .handwritten-content th {
+        font-weight: bold;
+      }
+      
+      /* Specific styles handled in component via classes, but defaults here */
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0",
+    "react": "https://aistudiocdn.com/react@^19.2.1",
+    "react/": "https://aistudiocdn.com/react@^19.2.1/",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0",
+    "html2canvas": "https://aistudiocdn.com/html2canvas@^1.4.1",
+    "jspdf": "https://aistudiocdn.com/jspdf@^2.5.1",
+    "jszip": "https://aistudiocdn.com/jszip@^3.10.1",
+    "marked": "https://aistudiocdn.com/marked@^15.0.6",
+    "pdfjs-dist": "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/+esm"
+  }
+}
+</script>
+</head>
+  <body class="bg-slate-100 text-slate-900 font-sans antialiased selection:bg-indigo-100 selection:text-indigo-700">
+    <div id="root"></div>
+  </body>
+</html>
