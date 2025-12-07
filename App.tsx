@@ -8,7 +8,7 @@ import { summarizeToNotes } from './services/geminiService';
 import { HandwritingFont, PaperType, InkColor, NoteSettings, TableStyle } from './types';
 import { paginateText } from './utils/textUtils';
 import { htmlToMarkdown } from './utils/fileUtils';
-import { PenTool, AlertCircle, RefreshCw, FileText } from 'lucide-react';
+import { PenTool, AlertCircle, RefreshCw } from 'lucide-react';
 
 const DEFAULT_SETTINGS: NoteSettings = {
   font: HandwritingFont.INDIE_FLOWER,
@@ -88,16 +88,15 @@ export default function App() {
             const start = textarea.selectionStart;
             const end = textarea.selectionEnd;
             const currentText = text;
-            const newText = currentText.substring(0, start) + md + currentText.substring(end);
+            
+            // Add padding newlines to ensure markdown separation
+            const insertText = `\n\n${md}\n\n`;
+            
+            const newText = currentText.substring(0, start) + insertText + currentText.substring(end);
             
             setText(newText);
-            
-            // Note: Cursor position logic is complex in React controlled inputs without extra state
-            // For now, we update the text and user might lose cursor position, which is acceptable for large pastes
         } catch (err) {
             console.warn("Failed to convert pasted HTML to Markdown, falling back to plain text.");
-            // Default paste behavior proceeds if we don't preventDefault, but we did.
-            // So we manually insert plain text as fallback
             const plainText = e.clipboardData.getData('text/plain');
             const textarea = e.currentTarget;
             const start = textarea.selectionStart;
@@ -106,7 +105,6 @@ export default function App() {
             setText(newText);
         }
     }
-    // If no HTML, allow default behavior (plain text paste)
   }, [text]);
 
   const handleDownloadImage = useCallback(async (pageIndex: number = 0) => {
@@ -209,6 +207,32 @@ export default function App() {
     }
   }, [pages.length]);
 
+  // Responsive scaling logic
+  const [scale, setScale] = useState(1);
+  const previewContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const updateScale = () => {
+        if (!previewContainerRef.current) return;
+        const containerWidth = previewContainerRef.current.clientWidth;
+        const PAGE_WIDTH = 794; // A4 width
+        const PADDING = 48; // Safe padding
+        
+        // Calculate scale to fit width, maxing out at 1 (100%)
+        // Min scale 0.3 to prevent total collapse
+        // Ensure containerWidth is valid
+        if (containerWidth < 100) return;
+
+        const newScale = Math.max(0.3, Math.min(1, (containerWidth - PADDING) / PAGE_WIDTH));
+        setScale(newScale);
+    };
+
+    updateScale();
+    // Add debouncing could be good here but simplistic is fine for now
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-slate-50 overflow-hidden h-screen">
       
@@ -224,7 +248,7 @@ export default function App() {
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
             
             {/* Input Column */}
-            <div className="w-full md:w-1/3 min-w-[320px] border-r border-slate-200 bg-white flex flex-col z-10 shadow-sm">
+            <div className="w-full md:w-1/3 min-w-[320px] border-r border-slate-200 bg-white flex flex-col z-10 shadow-sm order-2 md:order-1 h-1/3 md:h-auto">
                 <div className="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
                     <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Editor</h2>
                     <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded-full">
@@ -242,16 +266,21 @@ export default function App() {
             </div>
 
             {/* Preview Column */}
-            <div className="flex-1 bg-slate-200/50 overflow-y-auto flex flex-col items-center py-8 px-4 md:px-8 relative scroll-smooth">
-                {pages.map((pageText, index) => (
-                    <PaperPreview 
-                        key={index}
-                        ref={(el) => { pageRefs.current[index] = el; }}
-                        text={pageText} 
-                        settings={settings}
-                        pageNumber={index + 1}
-                    />
-                ))}
+            <div 
+                ref={previewContainerRef}
+                className="flex-1 bg-slate-200/50 overflow-y-auto flex flex-col items-center py-8 relative scroll-smooth order-1 md:order-2 h-2/3 md:h-auto"
+            >
+                <div style={{ transform: `scale(${scale})`, transformOrigin: 'top center' }}>
+                    {pages.map((pageText, index) => (
+                        <PaperPreview 
+                            key={index}
+                            ref={(el) => { pageRefs.current[index] = el; }}
+                            text={pageText} 
+                            settings={settings}
+                            pageNumber={index + 1}
+                        />
+                    ))}
+                </div>
                 
                 {/* Bottom spacer */}
                 <div className="h-12 w-full shrink-0"></div>
@@ -293,7 +322,7 @@ export default function App() {
       </div>
 
       {/* Right: Controls Sidebar */}
-      <div className="w-full md:w-80 h-auto md:h-full shrink-0 border-t md:border-t-0 z-20 shadow-xl bg-white">
+      <div className="w-full md:w-80 h-auto md:h-full shrink-0 border-t md:border-t-0 z-20 shadow-xl bg-white hidden md:block">
         <ControlPanel
           settings={settings}
           onSettingsChange={setSettings}
@@ -307,7 +336,7 @@ export default function App() {
           totalPages={pages.length}
         />
       </div>
-
+      
     </div>
   );
 }

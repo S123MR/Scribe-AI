@@ -8,6 +8,12 @@ interface PaperPreviewProps {
   pageNumber?: number;
 }
 
+// Configure marked to use GFM (GitHub Flavored Markdown) and breaks
+marked.use({
+  gfm: true,
+  breaks: true,
+});
+
 // We use forwardRef to allow the parent to capture this DOM element for image generation
 export const PaperPreview = forwardRef<HTMLDivElement, PaperPreviewProps>(({ text, settings, pageNumber }, ref) => {
   
@@ -28,21 +34,21 @@ export const PaperPreview = forwardRef<HTMLDivElement, PaperPreviewProps>(({ tex
     };
 
     let backgroundStyle = {};
-    let paddingLeft = '3rem'; // Default padding (p-12 = 3rem)
+    let paddingLeft = '3rem'; // Default padding (p-12 = 3rem = 48px)
 
     switch (settings.paperType) {
       case PaperType.LINED:
-        // Adjusted red line to be closer to left edge (50px)
+        // Adjusted red line to be very close to left edge (30px)
         backgroundStyle = {
           backgroundImage: `
-            linear-gradient(90deg, transparent 49px, #ef4444 49px, #ef4444 51px, transparent 51px),
+            linear-gradient(90deg, transparent 29px, #ef4444 29px, #ef4444 31px, transparent 31px),
             linear-gradient(#e2e8f0 1px, transparent 1px)
           `,
           backgroundSize: `100% ${settings.lineHeight * settings.fontSize}px`,
           paddingTop: `${settings.lineHeight * settings.fontSize * 0.2}px`, 
         };
-        // Padding just after the red line (56px approx)
-        paddingLeft = '3.5rem'; 
+        // Padding just after the red line. 30px + ~12px padding = 42px ~= 2.6rem
+        paddingLeft = '2.6rem'; 
         break;
       case PaperType.GRID:
         backgroundStyle = {
@@ -109,7 +115,7 @@ export const PaperPreview = forwardRef<HTMLDivElement, PaperPreviewProps>(({ tex
   const style = getPaperStyle();
 
   return (
-    <div className="relative mb-8 shadow-xl transition-transform hover:scale-[1.01] duration-300">
+    <div className="relative mb-8 shadow-xl transition-transform duration-300 origin-top">
         <style>{getTableStyles()}</style>
         <div 
         ref={ref}
